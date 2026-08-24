@@ -233,7 +233,7 @@ jobs:
 
     steps:
       - name: Download installable package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: wp-environment-guard-${{ needs.package.outputs.version }}
           path: release-artifact
