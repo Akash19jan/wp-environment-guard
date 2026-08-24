@@ -1,0 +1,261 @@
+name: Release package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  LC_ALL: C
+  TZ: UTC
+
+jobs:
+  package:
+    name: Build and smoke-test installable ZIP
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+          tools: composer:v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Validate release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_version="$(node --print "require('./package.json').version")"
+          plugin_version="$(sed -nE 's/^[[:space:]]*\*[[:space:]]+Version:[[:space:]]+([^[:space:]]+).*$/\1/p' wp-environment-guard.php)"
+          runtime_version="$(sed -nE "s/^[[:space:]]*public const VERSION = '([^']+)';[[:space:]]*$/\1/p" src/core/class-plugin.php)"
+
+          if [[ ! "${package_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "package.json contains an invalid release version: ${package_version}" >&2
+            exit 1
+          fi
+
+          if [[ "${package_version}" != "${plugin_version}" ]]; then
+            echo "package.json (${package_version}) and the plugin header (${plugin_version}) do not match." >&2
+            exit 1
+          fi
+
+          if [[ "${package_version}" != "${runtime_version}" ]]; then
+            echo "package.json (${package_version}) and the runtime constant (${runtime_version}) do not match." >&2
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "v${package_version}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} must exactly match v${package_version}." >&2
+            exit 1
+          fi
+
+          echo "version=${package_version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install PHP development dependencies
+        env:
+          COMPOSER_ROOT_VERSION: ${{ steps.version.outputs.version }}
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Audit PHP dependencies
+        run: composer audit --no-interaction
+
+      - name: Run PHP quality checks
+        run: composer check
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run asset checks and production build
+        run: npm run check
+
+      - name: Verify generated assets are current
+        run: git diff --exit-code -- assets/build composer.lock
+
+      - name: Install production-only PHP dependencies
+        env:
+          COMPOSER_ROOT_VERSION: ${{ steps.version.outputs.version }}
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --classmap-authoritative
+
+      - name: Verify production PHP platform requirements
+        run: composer check-platform-reqs --no-dev
+
+      - name: Verify Composer lockfile is unchanged
+        run: git diff --exit-code -- composer.lock
+
+      - name: Assemble deterministic plugin tree
+        id: archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.version }}"
+          package_root='dist/wp-environment-guard'
+          archive_name="wp-environment-guard-${version}.zip"
+          archive_path="dist/${archive_name}"
+          source_date_epoch="$(git log -1 --format=%ct)"
+
+          install -d "${package_root}/assets"
+          cp -a src "${package_root}/src"
+          cp -a assets/build "${package_root}/assets/build"
+          cp -a docs "${package_root}/docs"
+          cp -a vendor "${package_root}/vendor"
+          cp -a wp-environment-guard.php uninstall.php LICENSE README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md "${package_root}/"
+
+          if [[ -d languages ]]; then
+            cp -a languages "${package_root}/languages"
+          fi
+
+          required_files=(
+            'wp-environment-guard.php'
+            'uninstall.php'
+            'CONTRIBUTING.md'
+            'SECURITY.md'
+            'vendor/autoload.php'
+            'src/core/class-bootstrap.php'
+            'docs/adr/0001-use-wordpress-as-the-environment-authority.md'
+            'assets/build/admin.js'
+            'assets/build/admin.css'
+            'assets/build/frontend.css'
+          )
+
+          for required_file in "${required_files[@]}"; do
+            if [[ ! -s "${package_root}/${required_file}" ]]; then
+              echo "Required release file is missing or empty: ${required_file}" >&2
+              exit 1
+            fi
+          done
+
+          first_symlink="$(find "${package_root}" -type l -print -quit)"
+
+          if [[ -n "${first_symlink}" ]]; then
+            echo 'Release packages must not contain symbolic links.' >&2
+            exit 1
+          fi
+
+          php -r "require '${package_root}/vendor/autoload.php'; exit(class_exists('Akash_Aagrawal\\Environment_Guard\\Core\\Bootstrap') ? 0 : 1);"
+
+          find "${package_root}" -type d -exec chmod 0755 {} +
+          find "${package_root}" -type f -exec chmod 0644 {} +
+          find "${package_root}" -exec touch --date="@${source_date_epoch}" {} +
+
+          (
+            cd dist
+            find wp-environment-guard -type f -print0 \
+              | sort -z \
+              | xargs -0 zip -X -q "${archive_name}"
+            sha256sum "${archive_name}" > "${archive_name}.sha256"
+          )
+
+          unzip -t "${archive_path}"
+          archive_listing="$(zipinfo -1 "${archive_path}")"
+
+          for required_file in "${required_files[@]}"; do
+            grep -Fxq "wp-environment-guard/${required_file}" <<< "${archive_listing}"
+          done
+
+          if grep -Eq '^wp-environment-guard/(node_modules|tests|assets/src|\.github)/' <<< "${archive_listing}"; then
+            echo 'Development-only files leaked into the release archive.' >&2
+            exit 1
+          fi
+
+          echo "archive_name=${archive_name}" >> "${GITHUB_OUTPUT}"
+
+      - name: Extract installable ZIP for smoke test
+        id: smoke_ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d dist/release-smoke
+          unzip -q "dist/${{ steps.archive.outputs.archive_name }}" -d dist/release-smoke
+
+      - name: Start isolated WordPress smoke-test environment
+        run: npx wp-env --config=.github/release-smoke.wp-env.json start
+
+      - name: Activate packaged plugin
+        run: npx wp-env --config=.github/release-smoke.wp-env.json run cli wp plugin activate wp-environment-guard
+
+      - name: Verify packaged plugin is active and healthy
+        run: |
+          npx wp-env --config=.github/release-smoke.wp-env.json run cli wp plugin is-active wp-environment-guard
+          npx wp-env --config=.github/release-smoke.wp-env.json run cli wp environment-guard check
+
+      - name: Stop smoke-test environment
+        if: ${{ always() && steps.smoke_ready.outcome == 'success' }}
+        continue-on-error: true
+        run: npx wp-env --config=.github/release-smoke.wp-env.json stop
+
+      - name: Upload installable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-environment-guard-${{ steps.version.outputs.version }}
+          path: |
+            dist/${{ steps.archive.outputs.archive_name }}
+            dist/${{ steps.archive.outputs.archive_name }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    name: Publish tagged release assets
+    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installable package
+        uses: actions/download-artifact@v4
+        with:
+          name: wp-environment-guard-${{ needs.package.outputs.version }}
+          path: release-artifact
+
+      - name: Create or update GitHub release
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.package.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          archive="release-artifact/wp-environment-guard-${RELEASE_VERSION}.zip"
+          checksum="${archive}.sha256"
+
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release upload "${tag}" "${archive}" "${checksum}" --clobber
+          else
+            gh release create "${tag}" "${archive}" "${checksum}" \
+              --verify-tag \
+              --generate-notes \
+              --title "WP Environment Guard ${RELEASE_VERSION}"
+          fi

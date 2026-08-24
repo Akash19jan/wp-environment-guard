@@ -1,0 +1,47 @@
+name: Feature request
+description: Propose a focused environment-safety improvement.
+title: "Feature: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Safety problem
+      description: Describe the failure mode or workflow without including sensitive site data.
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Explain the observable behavior rather than prescribing an implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: production
+    attributes:
+      label: Production-inertness
+      description: Explain how production remains unaffected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and mutation impact
+      description: Identify any data handled and any settings that could be changed. "None" is a valid answer.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Design confirmation
+      options:
+        - label: The proposal can avoid storing sensitive payloads.
+          required: true
+        - label: The proposal can avoid changing third-party plugin settings or activation state.
+          required: true

@@ -1,0 +1,25 @@
+@use "tokens";
+
+@mixin styles {
+
+	#wpadminbar #wp-admin-bar-akash-aagrawal-environment-guard > .ab-item {
+		background-color: tokens.$color-warning;
+		color: tokens.$color-surface;
+		font-weight: 600;
+	}
+
+	#wpadminbar #wp-admin-bar-akash-aagrawal-environment-guard.is-inactive > .ab-item {
+		background-color: tokens.$color-danger;
+		color: tokens.$color-surface;
+	}
+
+	#wpadminbar #wp-admin-bar-akash-aagrawal-environment-guard > .ab-item:focus,
+	#wpadminbar #wp-admin-bar-akash-aagrawal-environment-guard > .ab-item:hover {
+		background-color: tokens.$color-surface;
+		color: tokens.$color-text;
+	}
+
+	.akash-aagrawal-environment-guard-toolbar__label {
+		white-space: nowrap;
+	}
+}

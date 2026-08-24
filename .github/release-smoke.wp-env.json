@@ -1,0 +1,11 @@
+{
+	"plugins": ["./dist/release-smoke/wp-environment-guard"],
+	"core": "https://wordpress.org/wordpress-6.5.zip",
+	"phpVersion": "8.2",
+	"port": 8890,
+	"config": {
+		"WP_DEBUG": true,
+		"WP_ENVIRONMENT_TYPE": "staging"
+	},
+	"testsEnvironment": false
+}

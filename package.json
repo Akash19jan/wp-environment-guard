@@ -1,0 +1,42 @@
+{
+	"name": "wp-environment-guard",
+	"version": "0.1.0",
+	"description": "Development tooling and assets for WP Environment Guard.",
+	"author": "Akash Agrawal",
+	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"wordpress",
+		"woocommerce",
+		"environment",
+		"safety"
+	],
+	"homepage": "https://github.com/Akash19jan/wp-environment-guard",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Akash19jan/wp-environment-guard.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Akash19jan/wp-environment-guard/issues"
+	},
+	"private": true,
+	"devDependencies": {
+		"@axe-core/playwright": "^4.13.0",
+		"@playwright/test": "^1.62.1",
+		"@wordpress/env": "latest",
+		"@wordpress/scripts": "^34.0.0"
+	},
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"lint:js": "wp-scripts lint-js assets/src/js tests/js tests/e2e playwright.config.js webpack.config.js --max-warnings=0",
+		"lint:style": "wp-scripts lint-style \"assets/src/**/*.scss\" --max-warnings=0",
+		"lint:pkg-json": "wp-scripts lint-pkg-json",
+		"format:js": "wp-scripts lint-js assets/src/js tests/js tests/e2e playwright.config.js webpack.config.js --fix",
+		"format:style": "wp-scripts lint-style \"assets/src/**/*.scss\" --fix",
+		"test:unit": "wp-scripts test-unit-js --env=jsdom --runInBand",
+		"test:e2e": "playwright test",
+		"env:start": "wp-env start",
+		"env:stop": "wp-env stop",
+		"check": "npm run lint:pkg-json && npm run lint:js && npm run lint:style && npm run test:unit && npm run build"
+	}
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="WP Environment Guard" xsi:noNamespaceSchemaLocation="./vendor/squizlabs/php_codesniffer/phpcs.xsd">
+	<description>WordPress and WordPress VIP coding standards for WP Environment Guard.</description>
+
+	<file>wp-environment-guard.php</file>
+	<file>uninstall.php</file>
+	<file>src</file>
+	<file>tests</file>
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/assets/build/*</exclude-pattern>
+	<exclude-pattern>*/coverage/*</exclude-pattern>
+
+	<arg name="basepath" value="." />
+	<arg name="colors" />
+	<arg name="extensions" value="php" />
+	<arg name="parallel" value="4" />
+	<arg value="sp" />
+
+	<config name="minimum_wp_version" value="6.5" />
+	<config name="testVersion" value="8.2-" />
+
+	<rule ref="WordPress" />
+	<rule ref="WordPress-VIP-Go" />
+	<rule ref="PHPCompatibilityWP">
+		<include-pattern>*\.php$</include-pattern>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="Akash_Aagrawal" />
+				<element value="akash_aagrawal_environment_guard" />
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wp-environment-guard" />
+			</property>
+		</properties>
+	</rule>
+
+	<!-- PHPUnit requires test class filenames to mirror their class names. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>tests/unit/*Test.php</exclude-pattern>
+	</rule>
+</ruleset>

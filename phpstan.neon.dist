@@ -1,0 +1,16 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 8
+	scanFiles:
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+	paths:
+		- wp-environment-guard.php
+		- uninstall.php
+		- src
+	excludePaths:
+		analyse:
+			- assets/build
+			- vendor
+	treatPhpDocTypesAsCertain: false

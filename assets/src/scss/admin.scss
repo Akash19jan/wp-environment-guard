@@ -1,0 +1,126 @@
+@use "tokens";
+@use "toolbar";
+@include toolbar.styles;
+
+.akash-aagrawal-environment-guard-settings {
+	max-width: 68rem;
+}
+
+.akash-aagrawal-environment-guard-settings__intro {
+	max-width: 48rem;
+	color: tokens.$color-text-muted;
+	font-size: 1rem;
+}
+
+.akash-aagrawal-environment-guard-settings__summary,
+.akash-aagrawal-environment-guard-settings__group {
+	box-sizing: border-box;
+	max-width: 62rem;
+	margin-block: tokens.$space-lg;
+	padding: tokens.$space-lg;
+	border: 1px solid tokens.$color-border;
+	border-radius: tokens.$radius;
+	background: tokens.$color-surface;
+}
+
+.akash-aagrawal-environment-guard-settings__summary {
+	border-inline-start: 0.35rem solid tokens.$color-warning-border;
+}
+
+.akash-aagrawal-environment-guard-settings__summary.is-inactive {
+	border-inline-start-color: tokens.$color-danger;
+}
+
+.akash-aagrawal-environment-guard-settings__summary h2 {
+	margin-block-start: 0;
+}
+
+.akash-aagrawal-environment-guard-settings__summary dl {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(10rem, 1fr));
+	gap: tokens.$space-md;
+}
+
+.akash-aagrawal-environment-guard-settings__summary dl > div {
+	padding: tokens.$space-md;
+	background: tokens.$color-surface-muted;
+}
+
+.akash-aagrawal-environment-guard-settings__summary dt {
+	font-weight: 600;
+}
+
+.akash-aagrawal-environment-guard-settings__summary dd {
+	margin: tokens.$space-xs 0 0;
+}
+
+.akash-aagrawal-environment-guard-settings__warning {
+	color: tokens.$color-danger;
+}
+
+.akash-aagrawal-environment-guard-settings__group > legend {
+	padding-inline: tokens.$space-xs;
+	color: tokens.$color-text;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.akash-aagrawal-environment-guard-settings__control,
+.akash-aagrawal-environment-guard-settings__choice,
+.akash-aagrawal-environment-guard-settings__conditional {
+	margin-block-start: tokens.$space-md;
+}
+
+.akash-aagrawal-environment-guard-settings__control > label,
+.akash-aagrawal-environment-guard-settings__choice > label,
+.akash-aagrawal-environment-guard-settings__conditional > label {
+	font-weight: 600;
+}
+
+.akash-aagrawal-environment-guard-settings__control .description,
+.akash-aagrawal-environment-guard-settings__choice .description {
+	margin: tokens.$space-xs 0 0 1.75rem;
+}
+
+.akash-aagrawal-environment-guard-settings__choices {
+	margin-block-start: tokens.$space-md;
+}
+
+.akash-aagrawal-environment-guard-settings__conditional {
+	margin-inline-start: 1.75rem;
+	padding: tokens.$space-md;
+	border-inline-start: 0.25rem solid tokens.$color-warning-border;
+	background: tokens.$color-surface-muted;
+}
+
+.akash-aagrawal-environment-guard-settings__conditional[hidden] {
+	display: none;
+}
+
+.akash-aagrawal-environment-guard-settings__conditional input,
+.akash-aagrawal-environment-guard-settings__conditional textarea {
+	display: block;
+	margin-block-start: tokens.$space-xs;
+}
+
+.akash-aagrawal-environment-guard-settings input:focus-visible,
+.akash-aagrawal-environment-guard-settings textarea:focus-visible {
+	outline: 0.2rem solid tokens.$color-focus;
+	outline-offset: 0.1rem;
+}
+
+@media screen and ( max-width: 782px ) {
+
+	.akash-aagrawal-environment-guard-settings__summary,
+	.akash-aagrawal-environment-guard-settings__group {
+		padding: tokens.$space-md;
+	}
+
+	.akash-aagrawal-environment-guard-settings__summary dl {
+		grid-template-columns: 1fr;
+	}
+
+	.akash-aagrawal-environment-guard-settings__conditional {
+		margin-inline-start: 0;
+	}
+}

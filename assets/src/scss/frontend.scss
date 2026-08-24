@@ -1,0 +1,57 @@
+@use "tokens";
+@use "toolbar";
+@include toolbar.styles;
+
+.akash-aagrawal-environment-guard-banner {
+	position: relative;
+	z-index: 99998;
+	box-sizing: border-box;
+	width: 100%;
+	border-block-end: 0.25rem solid tokens.$color-warning-border;
+	background: tokens.$color-warning;
+	color: tokens.$color-surface;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	font-size: 1rem;
+	line-height: 1.5;
+	text-align: start;
+}
+
+.akash-aagrawal-environment-guard-banner.is-inactive {
+	border-block-end-color: tokens.$color-surface;
+	background: tokens.$color-danger;
+}
+
+.akash-aagrawal-environment-guard-banner__inner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: tokens.$space-xs tokens.$space-md;
+	align-items: baseline;
+	justify-content: center;
+	max-width: 80rem;
+	margin-inline: auto;
+	padding: tokens.$space-sm tokens.$space-md;
+}
+
+.akash-aagrawal-environment-guard-banner__title {
+	font-weight: 700;
+}
+
+.akash-aagrawal-environment-guard-banner__message {
+	font-weight: 400;
+}
+
+@media screen and ( max-width: 600px ) {
+
+	.akash-aagrawal-environment-guard-banner__inner {
+		display: block;
+	}
+
+	.akash-aagrawal-environment-guard-banner__title,
+	.akash-aagrawal-environment-guard-banner__message {
+		display: block;
+	}
+
+	.akash-aagrawal-environment-guard-banner__message {
+		margin-block-start: tokens.$space-xs;
+	}
+}

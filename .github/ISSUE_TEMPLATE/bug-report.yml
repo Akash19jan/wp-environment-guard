@@ -1,0 +1,70 @@
+name: Bug report
+description: Report reproducible behavior that is not a security vulnerability.
+title: "Bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. Do not include credentials, email content, addresses, request URLs, headers, payloads, order data, or other sensitive information. Report security issues through the private link in SECURITY.md.
+
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version or revision
+      placeholder: 0.1.0 or a commit SHA
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: WordPress environment type
+      options:
+        - local
+        - development
+        - staging
+        - production
+    validations:
+      required: true
+
+  - type: textarea
+    id: versions
+    attributes:
+      label: Runtime versions
+      description: Include WordPress, PHP, WooCommerce if relevant, browser, and operating system versions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Use synthetic values and a disposable site.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data-safety confirmation
+      options:
+        - label: I removed credentials, personal data, message content, URLs, headers, payloads, and order information.
+          required: true
+        - label: This report does not describe a security vulnerability.
+          required: true
