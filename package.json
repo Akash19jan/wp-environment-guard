@@ -21,7 +21,7 @@
 	"private": true,
 	"devDependencies": {
 		"@axe-core/playwright": "^4.13.0",
-		"@playwright/test": "^1.62.1",
+		"@playwright/test": "^1.64.0",
 		"@wordpress/env": "latest",
 		"@wordpress/scripts": "^34.0.0"
 	},
